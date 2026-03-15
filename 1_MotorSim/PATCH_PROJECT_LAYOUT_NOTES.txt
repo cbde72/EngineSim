@@ -1,0 +1,17 @@
+Projektlayout umgestellt:
+
+1) Alle Startskripte liegen jetzt unter scripts/.
+2) Simulation liest Eingaben aus dem frei waehlbaren Projektordner:
+   <Projekt>/config.json
+   <Projekt>/data/...
+3) Simulation schreibt neue Dateien nach:
+   <Projekt>/out/...
+4) Referenzdaten werden geschrieben nach:
+   <test_space>/reference_data/cycle_reference_default.npz
+5) pytest HTML-Report und Coverage werden geschrieben nach:
+   <test_space>/report.html
+   <test_space>/htmlcov/
+
+Relevante Umgebungsvariablen:
+- MOTORSIM_PROJECT_DIR
+- MOTORSIM_TEST_SPACE

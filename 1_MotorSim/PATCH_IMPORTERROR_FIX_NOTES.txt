@@ -1,0 +1,12 @@
+Corrective patch for ImportError:
+    cannot import name 'initialize_workspace' from 'motor_sim.paths'
+
+Changes:
+- Restored motor_sim.paths.initialize_workspace(...)
+- Added MotorSimPaths.project_config_file property
+- Kept project/test-space layout introduced in the final project layout patch
+
+Effect:
+- Existing imports of initialize_workspace now work again
+- Project defaults can be initialized into the selected project directory
+- No runtime folders are created inside tools/

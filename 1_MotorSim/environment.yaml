@@ -1,0 +1,26 @@
+name: my_project
+channels:
+- defaults
+- conda-forge
+dependencies:
+- python
+- PySide6
+- __future__
+- abc
+- base64
+- copy
+- csv
+- dataclasses
+- io
+- matplotlib
+- motor_sim
+- numpy
+- pandas
+- pathlib
+- phase_logic
+- pytest
+- scipy
+- subprocess
+- table_io
+- typing
+- yaml

@@ -1,0 +1,24 @@
+Patch V08 – Default runner paths / no CLI args required
+
+Geändert:
+- scripts/run_simulation.py
+- scripts/run_generate_cycle_reference.py
+- scripts/run_config_editor.py
+- scripts/run_plot_editor.py
+- scripts/run_tests.py
+- tools/generate_cycle_reference.py
+
+Inhalt:
+- alle Runner starten jetzt ohne Pflicht-CLI-Argumente
+- Default-Projekt = <repo>/Projekte
+- Default-Test-Space = <repo>/../test_space
+- sys.path-Initialisierung in den Runnern vereinheitlicht
+- initialize_workspace(...) wird vor Lauf/GUI/Test/Referenzerzeugung aufgerufen
+- run_simulation.py nutzt keine hart codierten Benutzerpfade mehr
+- tools/generate_cycle_reference.py ist ebenfalls ohne --project/--test-space lauffähig
+
+Kurzer Smoke-Test im Container:
+- python scripts/run_generate_cycle_reference.py  -> OK
+- python tools/generate_cycle_reference.py        -> OK
+- python scripts/run_tests.py --file tests/test_model_integration.py -> OK
+- MPLBACKEND=Agg python scripts/run_simulation.py -> OK

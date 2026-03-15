@@ -1,0 +1,38 @@
+MotorSim V05 – Workspace-Patch für Tests und Referenzdatengenerierung
+
+Enthaltene Umstellungen
+- Tests laufen workspace-basiert statt implizit über cwd.
+- Referenzdaten werden bevorzugt aus <workspace>/reference_data geladen.
+- Fallback bleibt auf <workspace>/tests/reference_data und <project>/tests/reference_data erhalten.
+- initialize_workspace() kopiert jetzt optional auch vorhandene Referenzdaten ins Workspace.
+- run_test_V02.py schreibt HTML-Report und Coverage ins Workspace:
+  - <workspace>/tests/report.html
+  - <workspace>/htmlcov/index.html
+- Neue Startdatei: run_generate_cycle_reference.py
+- tools/generate_cycle_reference.py schreibt standardmäßig nach:
+  - <workspace>/reference_data/cycle_reference_default.npz
+
+Wichtige Dateien
+- src/motor_sim/paths.py
+- tests/conftest.py
+- tests/test_cycle_regression.py
+- tools/generate_cycle_reference.py
+- run_generate_cycle_reference.py
+- run_test_V02.py
+
+Beispiele
+1) Workspace initialisieren + Referenzdaten erzeugen
+   python run_generate_cycle_reference.py --workdir D:/MotorSim_Workspaces/Test_A --init-workspace
+
+2) Tests im Workspace ausführen
+   python run_test_V02.py
+   (wenn in der Umgebung MOTORSIM_WORKDIR gesetzt ist)
+
+3) Direkt mit pytest
+   set MOTORSIM_WORKDIR=D:\MotorSim_Workspaces\Test_A
+   pytest -vv tests/test_cycle_regression.py
+
+Auflösung Referenzdaten
+1. <workspace>/reference_data/<name>
+2. <workspace>/tests/reference_data/<name>
+3. <project>/tests/reference_data/<name>

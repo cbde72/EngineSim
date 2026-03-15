@@ -1,0 +1,99 @@
+figures:
+- name: Hauptlayout
+  file_suffix: ''
+  figsize_in:
+  - 13.0
+  - 12.0
+  dpi: 180
+  title: MotorSim – gespeicherte Zyklen
+  label_fontsize: 10.0
+  tick_labelsize: 9.0
+  legend_fontsize: 8.0
+  line_width: 1.5
+  rows: 4
+  cols: 1
+  sharex: true
+  xtick_step_deg: 180.0
+  show_info_box: true
+  info_box_loc: outside right upper
+  auto_save_timestamped: true
+  timestamp_dir: timestamped_plots
+  plots:
+  - title: Druck
+    ylabel: p [bar]
+    y2label: ''
+    legend_loc: upper right
+    shade_phases: true
+    reference_lines: true
+    grid: true
+    series:
+    - key: p_cyl_bar
+      label: p_cyl
+      color: tab:blue
+      linestyle: '-'
+    secondary_series: []
+  - title: Volumen / Hub
+    ylabel: V [cm³]
+    y2label: Hub [mm]
+    legend_loc: upper right
+    shade_phases: true
+    reference_lines: true
+    grid: true
+    series:
+    - key: V_cm3
+      label: V
+      color: tab:purple
+      linestyle: --
+    secondary_series:
+    - key: lift_in_mm
+      label: Einlass
+      color: tab:red
+    - key: lift_ex_mm
+      label: Auslass
+      color: tab:brown
+  - title: Massenstrom
+    ylabel: ṁ [kg/s]
+    y2label: ''
+    legend_loc: best
+    shade_phases: true
+    reference_lines: true
+    grid: true
+    series:
+    - key: mdot_in_kg_s
+      label: ṁ_in
+      color: tab:blue
+    - key: mdot_out_kg_s
+      label: ṁ_out
+      color: tab:orange
+    secondary_series:
+    - key: m_cyl_kg
+      label: m_cyl_kg
+      color: black
+      linestyle: --
+      linewidth: 0.5
+  - title: Verbrennung
+    ylabel: Q̇ [W]
+    y2label: x_b [-]
+    legend_loc: upper right
+    shade_phases: true
+    reference_lines: true
+    grid: true
+    series:
+    - key: qdot_combustion_W
+      label: Q̇
+      color: tab:blue
+    secondary_series:
+    - key: xb_combustion
+      label: x_b
+      color: tab:orange
+      linestyle: --
+timing_plots:
+  cartesian:
+    enabled: false
+    auto_save_timestamped: false
+    info_box_loc: outside right upper
+    timestamp_dir: timestamped_plots
+  polar:
+    enabled: false
+    auto_save_timestamped: false
+    timestamp_dir: timestamped_plots

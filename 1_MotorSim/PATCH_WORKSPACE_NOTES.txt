@@ -1,0 +1,29 @@
+MotorSim V05 – Workspace/Pfad-Patch
+
+Enthaltene Änderungen
+- Neue zentrale Pfadlogik in src/motor_sim/paths.py
+- config.json und data/ werden robust über Projektroot + Workspace gefunden
+- Ausgaben werden relativ zum Workspace geschrieben
+- run.py unterstützt jetzt:
+  - optionales config-Argument
+  - --workdir <pfad>
+  - --pick-workdir
+  - --init-workspace
+  - --init-only
+- run_test_V02.py setzt MOTORSIM_WORKDIR für pytest
+- tests/conftest.py nutzt ein temporäres Workspace mit kopierter config.json und data/
+
+Beispiele
+1) Workspace initialisieren:
+   python run.py --workdir D:/MotorSim_Workspaces/Test_A --init-workspace --init-only
+
+2) Simulation aus Workspace starten:
+   python run.py --workdir D:/MotorSim_Workspaces/Test_A
+
+3) Simulation mit Dialog starten:
+   python run.py --pick-workdir --init-workspace
+
+Hinweis
+- Wenn in der config relative Dateinamen wie data/valve_lift.txt oder valve_lift.txt stehen,
+  werden diese bevorzugt im Workspace und danach im Projekt gesucht.
+- output_files.out_dir wird relativ zum Workspace interpretiert.

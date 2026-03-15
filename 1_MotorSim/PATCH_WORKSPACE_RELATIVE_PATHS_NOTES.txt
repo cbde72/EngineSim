@@ -1,0 +1,47 @@
+Workspace-relative follow-up patch
+=================================
+
+This follow-up patch normalizes workspace-related paths in config.json and in both editors.
+
+Included changes
+----------------
+1. config_editor.py
+   - output_files.out_dir is now treated as workspace-relative by default
+   - absolute paths inside the workspace are converted back to relative paths on save
+   - plot_style file/path/plot_style_file entries are normalized to workspace-relative on save/load
+   - output directory preview/open/run uses the shared workspace resolver instead of cwd/current_path heuristics
+
+2. plot_style_editor.py
+   - plot config file path and preview CSV path can be shown relative to the active workspace
+   - timestamp_dir is normalized to a workspace-relative path on load/save
+   - file open/save dialogs still use absolute filesystem paths internally, but UI fields prefer workspace-relative display
+
+3. plot_config.py / main.py
+   - plot style discovery now prefers the active workspace (plot.yaml / plot.yml / plot.json) before falling back to the config directory
+   - explicit relative plot_style file references can now resolve against the workspace
+
+4. paths.py
+   - added helper functions for workspace-relative normalization
+
+5. tools/generate_cycle_reference.py
+   - no more os.chdir() dependency
+   - supports --workdir and --init-workspace
+   - loads config/data through the shared workspace path resolver
+
+Typical result
+--------------
+A workspace such as:
+    D:/MotorSim_Workspaces/Test_A/
+can now contain:
+    config.json
+    data/
+    plot.yaml
+    results/
+    timestamped_plots/
+
+and the saved config/editor state will prefer relative paths like:
+    "out_dir": "results"
+    "plot_style": {"file": "plot.yaml"}
+    "timestamp_dir": "timestamped_plots"
+
+instead of embedding absolute machine-specific paths whenever possible.

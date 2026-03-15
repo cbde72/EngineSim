@@ -1,0 +1,196 @@
+{
+  "main_plot": {
+    "figsize_in": [
+      13,
+      12
+    ],
+    "pv_figsize_in": [
+      7,
+      6
+    ],
+    "dpi": 200,
+    "title": "MotorSim – gespeicherte Zyklen",
+    "title_fontsize": 12,
+    "label_fontsize": 10,
+    "tick_labelsize": 9,
+    "legend_fontsize": 8,
+    "info_fontsize": 8,
+    "reference_label_fontsize": 8,
+    "reference_linewidth": 0.8,
+    "line_width": 1.5,
+    "rows": 5,
+    "cols": 1,
+    "sharex": true,
+    "sharey": false,
+    "spacing": {
+      "left": 0.08,
+      "right": 0.95,
+      "bottom": 0.06,
+      "top": 0.95,
+      "hspace": 0.18,
+      "wspace": 0.12
+    },
+    "xtick_step_deg": 180.0,
+    "show_info_box": true,
+    "plots": [
+      {
+        "title": "Druck",
+        "ylabel": "p [bar]",
+        "legend_loc": "upper right",
+        "shade_phases": true,
+        "reference_lines": true,
+        "series": [
+          {
+            "key": "p_cyl_bar",
+            "label": "p_cyl",
+            "color": "tab:blue",
+            "linewidth": 1.8
+          },
+          {
+            "key": "p_ref_compression_bar",
+            "label": "p_ref Verdichtung",
+            "linestyle": "--",
+            "color": "tab:orange"
+          },
+          {
+            "key": "p_ref_expansion_bar",
+            "label": "p_ref Expansion",
+            "linestyle": ":",
+            "color": "tab:green"
+          }
+        ]
+      },
+      {
+        "title": "Volumen und Ventilhub",
+        "ylabel": "V [cm³]",
+        "y2label": "Ventilhub [mm]",
+        "legend_loc": "upper right",
+        "shade_phases": true,
+        "reference_lines": true,
+        "series": [
+          {
+            "key": "V_cm3",
+            "label": "V",
+            "linestyle": "--",
+            "color": "tab:purple"
+          }
+        ],
+        "secondary_series": [
+          {
+            "key": "lift_in_mm",
+            "label": "Hub Einlass",
+            "color": "tab:red"
+          },
+          {
+            "key": "lift_ex_mm",
+            "label": "Hub Auslass",
+            "color": "tab:brown"
+          }
+        ]
+      },
+      {
+        "title": "Massenstrom",
+        "ylabel": "ṁ [kg/s]",
+        "legend_loc": "upper right",
+        "shade_phases": true,
+        "reference_lines": true,
+        "series": [
+          {
+            "key": "mdot_in_kg_s",
+            "label": "ṁ Einlass",
+            "color": "tab:blue"
+          },
+          {
+            "key": "mdot_out_kg_s",
+            "label": "ṁ Auslass",
+            "color": "tab:orange"
+          }
+        ]
+      },
+      {
+        "title": "alphaK / Aeff",
+        "ylabel": "alphaK / alphaV [-]",
+        "y2label": "A_eff [mm²]",
+        "legend_loc": "upper right",
+        "shade_phases": true,
+        "reference_lines": true,
+        "series": [
+          {
+            "key": "alphaK_in",
+            "label": "alphaK Einströmen",
+            "color": "tab:blue"
+          },
+          {
+            "key": "alphaK_ex",
+            "label": "alphaK Ausströmen",
+            "color": "tab:orange"
+          },
+          {
+            "key": "alphaV_in",
+            "label": "alphaV Einströmen",
+            "linestyle": "--",
+            "color": "tab:green"
+          },
+          {
+            "key": "alphaV_ex",
+            "label": "alphaV Ausströmen",
+            "linestyle": ":",
+            "color": "tab:red"
+          }
+        ],
+        "secondary_series": [
+          {
+            "key": "A_in_mm2",
+            "label": "A_eff Einlass",
+            "linestyle": "--",
+            "color": "tab:purple"
+          },
+          {
+            "key": "A_ex_mm2",
+            "label": "A_eff Auslass",
+            "linestyle": ":",
+            "color": "tab:brown"
+          }
+        ]
+      },
+      {
+        "title": "Wärmezufuhr / Burn Fraction",
+        "ylabel": "Q̇ [W]",
+        "y2label": "x_b [-]",
+        "legend_loc": "upper right",
+        "shade_phases": true,
+        "reference_lines": true,
+        "series": [
+          {
+            "key": "qdot_combustion_W",
+            "label": "Q̇_comb",
+            "color": "tab:blue"
+          }
+        ],
+        "secondary_series": [
+          {
+            "key": "xb_combustion",
+            "label": "x_b",
+            "linestyle": "--",
+            "color": "tab:orange"
+          }
+        ]
+      }
+    ],
+    "pv_plot": {
+      "enabled": true,
+      "xlabel": "V [m³]",
+      "ylabel": "p [Pa]",
+      "title": "p-V Diagramm",
+      "grid": true,
+      "series": [
+        {
+          "x_key": "V_m3",
+          "y_key": "p_cyl_pa",
+          "label": "p-V",
+          "color": "tab:blue"
+        }
+      ]
+    }
+  }
+}

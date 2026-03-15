@@ -1,0 +1,12 @@
+MotorSim V06 path/script fixes
+
+Fixed:
+- motor_sim.paths is now backward-compatible with both old workspace-based and new project/test_space-based callers.
+- Added compatibility aliases: ProjectPaths, workspace_root, project_root, results_dir, plots_dir, logs_dir, exports_dir.
+- initialize_workspace(...) now accepts either MotorSimPaths or explicit directories and returns created files.
+- scripts/run_simulation.py now calls run_case() with the real config.json path instead of passing a directory/dataclass string.
+- scripts/run_tests.py and scripts/run_generate_cycle_reference.py now support DEFAULT_* values and optional picker dialogs.
+- root run.py and run_generate_cycle_reference.py were aligned with the current paths API.
+
+Most important bug fixed:
+- FileNotFoundError caused by passing the string representation of MotorSimPaths instead of a real file path.

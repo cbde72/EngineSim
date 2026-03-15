@@ -1,0 +1,15 @@
+MotorSim workspace editor patch
+
+Added:
+- Workspace support for Config Editor and Plot Editor
+- Workspace chooser in Config Editor toolbar/menu and Plot Editor top bar
+- Persistent workspace/path state via QSettings
+- Default config path: <workspace>/config.json
+- Default plot path: <workspace>/plot.yaml
+- Default preview CSV search in workspace/out/out_gui.csv and workspace/results/out_gui.csv
+- Runner scripts accept --workdir, --pick-workdir, --init-workspace
+- Config Editor simulation run passes --workdir to run.py
+
+Examples:
+python run_config_editor.py --workdir D:/MotorSim_Workspaces/Test_A --init-workspace
+python run_plot_style_editor.py --workdir D:/MotorSim_Workspaces/Test_A --init-workspace
