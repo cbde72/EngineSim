@@ -1,0 +1,4 @@
+# theta_deg  alphaK_in  alphaK_ex
+0 0.70 0.70
+360 0.70 0.70
+720 0.70 0.70

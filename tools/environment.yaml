@@ -1,0 +1,26 @@
+name: 0_Motorsim
+channels:
+- defaults
+- conda-forge
+dependencies:
+- python
+- pip
+- pip:
+  - __future__
+  - abc
+  - copy
+  - csv
+  - dataclasses
+  - matplotlib
+  - motor_sim
+  - numpy
+  - pandas
+  - phase_logic
+  - pyside6
+  - pytest
+  - pytest_html
+  - pyyaml
+  - scipy
+  - table_io
+  - tests
+  - typing
