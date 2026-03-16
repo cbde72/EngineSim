@@ -1,445 +1,158 @@
-MotorSim NASA Thermodynamic Library
-
-NASA polynomial thermodynamic database for MotorSim V06 including fuels, air components, and combustion products.
-
-The library provides temperature-dependent thermodynamic properties using the NASA-7 polynomial formulation widely used in combustion simulation tools such as
-Cantera,
-CHEMKIN and
-NASA CEA.
-
-It enables accurate modeling of:
-
-temperature dependent heat capacity
-
-enthalpy
-
-entropy
-
-ratio of specific heats
-
-mixture thermodynamics
-
-for internal combustion engine simulations.
-
-Features
-
-✔ NASA-7 polynomial thermodynamics
-✔ temperature range up to 6000 K
-✔ species database for air, fuels and combustion products
-✔ lightweight pure-Python implementation
-✔ optimized for high-speed engine simulation loops
-✔ compatible with MotorSim V06
-
-Included Species
-Air Components
-Species	Formula
-Oxygen	O₂
-Nitrogen	N₂
-Argon	Ar
-Combustion Products
-Species	Formula
-Carbon dioxide	CO₂
-Water	H₂O
-Carbon monoxide	CO
-Hydrogen	H₂
-OH radical	OH
-Atomic oxygen	O
-Atomic hydrogen	H
-Hydroperoxyl	HO₂
-Hydrogen peroxide	H₂O₂
-Nitric oxide	NO
-Nitrogen dioxide	NO₂
-Fuels
-Fuel	Surrogate
-Methanol	CH₃OH
-Ethanol	C₂H₅OH
-Gasoline	Iso-octane (C₈H₁₈)
-Diesel	n-Dodecane (C₁₂H₂₆)
-Hydrogen	H₂
-
-Surrogate fuels are commonly used in combustion simulations to represent complex fuel mixtures.
-
-Thermodynamic Model
-
-The thermodynamic properties follow the NASA 7-coefficient polynomial representation.
-
-Heat Capacity
-𝑐
-𝑝
-(
-𝑇
-)
-𝑅
-=
-𝑎
-1
-+
-𝑎
-2
-𝑇
-+
-𝑎
-3
-𝑇
-2
-+
-𝑎
-4
-𝑇
-3
-+
-𝑎
-5
-𝑇
-4
-R
-c
-p
-	​
-
-(T)
-	​
-
-=a
-1
-	​
-
-+a
-2
-	​
-
-T+a
-3
-	​
-
-T
-2
-+a
-4
-	​
-
-T
-3
-+a
-5
-	​
-
-T
-4
-Enthalpy
-ℎ
-(
-𝑇
-)
-𝑅
-𝑇
-=
-𝑎
-1
-+
-𝑎
-2
-2
-𝑇
-+
-𝑎
-3
-3
-𝑇
-2
-+
-𝑎
-4
-4
-𝑇
-3
-+
-𝑎
-5
-5
-𝑇
-4
-+
-𝑎
-6
-𝑇
-RT
-h(T)
-	​
-
-=a
-1
-	​
-
-+
-2
-a
-2
-	​
-
-	​
-
-T+
-3
-a
-3
-	​
-
-	​
-
-T
-2
-+
-4
-a
-4
-	​
-
-	​
-
-T
-3
-+
-5
-a
-5
-	​
-
-	​
-
-T
-4
-+
-T
-a
-6
-	​
-
-	​
-
-Entropy
-𝑠
-(
-𝑇
-)
-𝑅
-=
-𝑎
-1
-ln
-⁡
-𝑇
-+
-𝑎
-2
-𝑇
-+
-𝑎
-3
-2
-𝑇
-2
-+
-𝑎
-4
-3
-𝑇
-3
-+
-𝑎
-5
-4
-𝑇
-4
-+
-𝑎
-7
-R
-s(T)
-	​
-
-=a
-1
-	​
-
-lnT+a
-2
-	​
-
-T+
-2
-a
-3
-	​
-
-	​
-
-T
-2
-+
-3
-a
-4
-	​
-
-	​
-
-T
-3
-+
-4
-a
-5
-	​
-
-	​
-
-T
-4
-+a
-7
-	​
-
-Equation of State
-
-The library assumes an ideal gas equation of state:
-
-𝑝
-=
-𝜌
-𝑅
-𝑇
-p=ρRT
-
-Temperature dependent thermodynamic properties are provided by NASA polynomials.
-
-Installation
-
-Clone the repository
-
-git clone https://github.com/<user>/motorsim-nasa-thermo.git
-
-Install dependencies
-
-pip install numpy
-Usage Example
-from nasa7_library import get_species
-
-species = get_species("O2")
-
-T = 1200.0
-
-cp = species.cp(T)
-h = species.h(T)
-gamma = species.gamma(T)
+# MotorSim NASA Thermodynamic Library
 
-print(cp, h, gamma)
-Mixture Example
+<p align="center">
+  <img src="docs/images/motorsim_banner.png" alt="MotorSim NASA Thermodynamic Library" width="100%">
+</p>
 
-Example for a simple air mixture.
+<p align="center">
+  <b>High-performance NASA-7 thermodynamic property library for MotorSim</b><br>
+  Temperature-dependent gas properties for air, fuels, and combustion products in engine simulation.
+</p>
 
-from nasa7_library import dry_air
+<p align="center">
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-blue">
+  <img alt="Status" src="https://img.shields.io/badge/status-active-success">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-passing-brightgreen">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-lightgrey">
+</p>
 
-air = dry_air()
+---
 
-T = 1000.0
+## Overview
 
-cp = air.cp(T)
-gamma = air.gamma(T)
-Combustion Products
+**MotorSim NASA Thermodynamic Library** is a lightweight and extensible thermodynamic property package for
+high-speed internal combustion engine simulation.
 
-Example for complete combustion products.
+It provides **temperature-dependent ideal-gas thermodynamics** based on the **NASA 7-coefficient polynomial formulation**, enabling significantly more realistic thermodynamic behavior than constant-property models while preserving the speed required for transient simulation.
 
-from nasa7_library import complete_combustion_products
+The library is designed for integration into **MotorSim V06** and similar 0D / quasi-dimensional simulation environments.
 
-products = complete_combustion_products("methanol")
+### Key capabilities
 
-T = 2000
+- NASA-7 polynomial thermodynamics
+- temperature-dependent `cp(T)`, `cv(T)`, `h(T)`, `u(T)`, `s(T)`, `γ(T)`
+- air, fuels, radicals, and combustion products
+- pure Python implementation with low overhead
+- suitable for fast RHS evaluation in engine solvers
+- clean API for later extension toward mixtures and real-gas models
 
-cp = products.cp(T)
-Integration with MotorSim
+---
 
-MotorSim can switch between different thermodynamic models:
+## Why this library exists
 
-Mode	Description
-constant_cp	constant heat capacity
-nasa7	NASA polynomial thermodynamics
+Many reduced engine simulation models still use:
 
-Example configuration
+- constant heat capacity
+- constant ratio of specific heats
+- simplified fuel thermodynamics
 
-{
-  "thermodynamics": "nasa7",
-  "fuel": "methanol"
-}
-Performance
+These assumptions are fast, but they distort:
 
-NASA polynomials are extremely efficient.
+- compression temperature
+- peak pressure
+- expansion work
+- combustion temperature level
+- exhaust enthalpy
+- γ(T) during high-temperature phases
 
-Typical cost per evaluation:
+This library closes that gap by introducing **physically meaningful temperature-dependent gas properties**
+without the computational cost of full equilibrium chemistry or high-fidelity real-gas packages.
 
-~10 floating point operations
+---
 
-no iteration
+## Thermodynamic model
 
-no table lookup
+The implementation uses the **NASA-7 polynomial representation**.
 
-Therefore the model is well suited for high-frequency RHS evaluations in engine simulations.
+### Heat capacity
 
-Data Sources
+\[
+\frac{c_p(T)}{R} =
+a_1 + a_2 T + a_3 T^2 + a_4 T^3 + a_5 T^4
+\]
 
-Thermodynamic coefficients are based on datasets used in:
+### Enthalpy
 
-GRI-Mech 3.0 mechanism
+\[
+\frac{h(T)}{RT} =
+a_1 + \frac{a_2}{2}T + \frac{a_3}{3}T^2 + \frac{a_4}{4}T^3 + \frac{a_5}{5}T^4 + \frac{a_6}{T}
+\]
 
-n-Dodecane Reitz mechanism
+### Entropy
 
-ethanol combustion mechanisms
+\[
+\frac{s(T)}{R} =
+a_1 \ln T + a_2 T + \frac{a_3}{2}T^2 + \frac{a_4}{3}T^3 + \frac{a_5}{4}T^4 + a_7
+\]
 
-NASA thermochemical tables
+### Equation of state
 
-These datasets are also used by:
+The present library assumes an **ideal gas equation of state**:
 
-Cantera
+\[
+p = \rho R T
+\]
 
-CHEMKIN
+This means the package provides **realistic caloric properties** but not yet a real-gas compressibility model.
 
-NASA CEA
+---
 
-Validation
+## Species coverage
 
-Basic validation tests verify:
-
-heat capacity curves
-
-enthalpy integration
-
-γ(T) behaviour
-
-Example test run:
-
-pytest tests/test_nasa7_library.py
-
-Expected output:
-
-4 passed
-Roadmap
-
-Future improvements may include:
-
-mixture fraction combustion
-
-equilibrium chemistry
-
-real-gas equation of state
-
-tabulated thermodynamic lookup
-
-GPU accelerated evaluation
-
-License
-
-MIT License
-
-Author
-
-MotorSim Development
+### Air components
+
+- `O2`
+- `N2`
+- `AR`
+
+### Combustion products and radicals
+
+- `CO2`
+- `H2O`
+- `CO`
+- `H2`
+- `OH`
+- `O`
+- `H`
+- `HO2`
+- `H2O2`
+- `NO`
+- `NO2`
+
+### Fuels
+
+- `CH3OH` — Methanol
+- `C2H5OH` — Ethanol
+- `IC8H18` — Gasoline surrogate (iso-octane)
+- `NC12H26` — Diesel surrogate (n-dodecane)
+- `H2` — Hydrogen
+
+### Convenience aliases
+
+- `luft`
+- `methanol`
+- `ethanol`
+- `benzin`
+- `diesel`
+- `wasserstoff`
+
+---
+
+## Repository structure
+
+```text
+MotorSim_NASA_Thermo/
+├─ src/
+│  └─ motor_sim/
+│     └─ gas/
+│        ├─ nasa7.py
+│        └─ nasa7_library.py
+├─ tests/
+│  └─ test_nasa7_library.py
+├─ docs/
+│  └─ images/
+│     ├─ motorsim_banner.png
+│     ├─ architecture.png
+│     └─ cp_comparison.png
+├─ README.md
+└─ LICENSE
