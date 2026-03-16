@@ -6,7 +6,7 @@ from motor_sim.core.context import RHSContext
 from motor_sim.core.model import Model
 
 from motor_sim.kinematics.crank_slider import CrankSliderKinematics
-from motor_sim.gas.idealgas import IdealGas
+from motor_sim.gas.thermo import build_thermo_from_config
 
 from motor_sim.flow.valve_profiles import ValveProfilesPeriodic
 from motor_sim.flow.ports_profiles import PortsArea, AlphaK
@@ -131,7 +131,7 @@ class ModelBuilder:
             conrod_m=cfg.engine.conrod_m,
             compression_ratio=cfg.engine.compression_ratio
         )
-        gas = IdealGas(R=cfg.gas.R_J_per_kgK, cp=cfg.gas.cp_J_per_kgK)
+        gas = build_thermo_from_config(cfg.gas, combustion_cfg=cfg.energy_models.get("combustion", {}))
         area_provider = self._build_area_provider(cfg, engine.cycle_deg)
 
         enabled_cyls = [uc for uc in cfg.user_cylinders if uc.enabled]
@@ -197,17 +197,17 @@ class ModelBuilder:
 
         theta0 = math.radians(cfg.simulation.theta0_deg)
         V0, _, _ = kin.volume_dVdtheta_x(theta0)
-        m0 = cfg.initial.p0_pa * V0 / (gas.R * cfg.initial.T0_K)
+        m0 = cfg.initial.p0_pa * V0 / (gas.R_at(cfg.initial.T0_K) * cfg.initial.T0_K)
         y0 = np.zeros(len(names), dtype=float)
         y0[S.i("theta")] = theta0
-        y0[S.i("m_int_plenum")] = cfg.plena.intake.p0_pa * cfg.plena.intake.volume_m3 / (gas.R * cfg.plena.intake.T0_K)
+        y0[S.i("m_int_plenum")] = cfg.plena.intake.p0_pa * cfg.plena.intake.volume_m3 / (gas.R_at(cfg.plena.intake.T0_K) * cfg.plena.intake.T0_K)
         if use_energy_states:
-            y0[S.i("U_int_plenum")] = y0[S.i("m_int_plenum")] * gas.cv * cfg.plena.intake.T0_K
+            y0[S.i("U_int_plenum")] = gas.internal_energy_from_mass_temp(y0[S.i("m_int_plenum")], cfg.plena.intake.T0_K)
         else:
             y0[S.i("T_int_plenum")] = cfg.plena.intake.T0_K
-        y0[S.i("m_ex_plenum")] = cfg.plena.exhaust.p0_pa * cfg.plena.exhaust.volume_m3 / (gas.R * cfg.plena.exhaust.T0_K)
+        y0[S.i("m_ex_plenum")] = cfg.plena.exhaust.p0_pa * cfg.plena.exhaust.volume_m3 / (gas.R_at(cfg.plena.exhaust.T0_K) * cfg.plena.exhaust.T0_K)
         if use_energy_states:
-            y0[S.i("U_ex_plenum")] = y0[S.i("m_ex_plenum")] * gas.cv * cfg.plena.exhaust.T0_K
+            y0[S.i("U_ex_plenum")] = gas.internal_energy_from_mass_temp(y0[S.i("m_ex_plenum")], cfg.plena.exhaust.T0_K)
         else:
             y0[S.i("T_ex_plenum")] = cfg.plena.exhaust.T0_K
         runner_defaults = numerics_cfg.get("runner_defaults", {})
@@ -218,22 +218,22 @@ class ModelBuilder:
             V_rin = max(float(rin.get("volume_m3", runner_defaults.get("intake_volume_m3", 0.00024))), min_runner_volume_m3)
             T_rin = float(rin.get("wall_temperature_K", cfg.plena.intake.T0_K))
             p_rin = cfg.plena.intake.p0_pa
-            y0[S.i(f"m_rin__{cyl.name}")] = p_rin * V_rin / (gas.R * T_rin)
+            y0[S.i(f"m_rin__{cyl.name}")] = p_rin * V_rin / (gas.R_at(T_rin) * T_rin)
             if use_energy_states:
-                y0[S.i(f"U_rin__{cyl.name}")] = y0[S.i(f"m_rin__{cyl.name}")] * gas.cv * T_rin
+                y0[S.i(f"U_rin__{cyl.name}")] = gas.internal_energy_from_mass_temp(y0[S.i(f"m_rin__{cyl.name}")], T_rin)
             else:
                 y0[S.i(f"T_rin__{cyl.name}")] = T_rin
             V_rex = max(float(rex.get("volume_m3", runner_defaults.get("exhaust_volume_m3", 0.00025))), min_runner_volume_m3)
             T_rex = float(rex.get("wall_temperature_K", cfg.plena.exhaust.T0_K))
             p_rex = cfg.plena.exhaust.p0_pa
-            y0[S.i(f"m_rex__{cyl.name}")] = p_rex * V_rex / (gas.R * T_rex)
+            y0[S.i(f"m_rex__{cyl.name}")] = p_rex * V_rex / (gas.R_at(T_rex) * T_rex)
             if use_energy_states:
-                y0[S.i(f"U_rex__{cyl.name}")] = y0[S.i(f"m_rex__{cyl.name}")] * gas.cv * T_rex
+                y0[S.i(f"U_rex__{cyl.name}")] = gas.internal_energy_from_mass_temp(y0[S.i(f"m_rex__{cyl.name}")], T_rex)
             else:
                 y0[S.i(f"T_rex__{cyl.name}")] = T_rex
             y0[S.i(f"m__{cyl.name}")] = m0
             if use_energy_states:
-                y0[S.i(f"U__{cyl.name}")] = m0 * gas.cv * cfg.initial.T0_K
+                y0[S.i(f"U__{cyl.name}")] = gas.internal_energy_from_mass_temp(m0, cfg.initial.T0_K)
             else:
                 y0[S.i(f"T__{cyl.name}")] = cfg.initial.T0_K
 

@@ -22,6 +22,17 @@ class EngineCfg:
 class GasCfg:
     R_J_per_kgK: float
     cp_J_per_kgK: float
+    thermo_mode: str = 'const'
+    species_name: str = 'air'
+    mixture_preset: str = 'custom'
+    mixture_mole_fractions: Dict[str, float] | None = None
+    combustion_products_fuel_name: str = 'methanol'
+    combustion_products_lambda: float = 1.0
+    combustion_products_lambda_source: str = 'combustion'
+    combustion_products_rich_mode: str = 'simple'
+    combustion_products_equilibrium_lite_enabled: bool = False
+    combustion_products_equilibrium_lite_temperature_K: float = 2200.0
+    combustion_products_equilibrium_lite_strength: float = 0.35
 
 @dataclass(frozen=True)
 class ManifoldCfg:
@@ -378,7 +389,21 @@ def load_config(path: str) -> Config:
             float(e["freq_hz"]) if "freq_hz" in e and e["freq_hz"] is not None else None,
             float(e["bore_m"]), float(e["stroke_m"]), float(e["conrod_m"]), float(e["compression_ratio"]),
         ),
-        gas=GasCfg(float(g["R_J_per_kgK"]), float(g["cp_J_per_kgK"])),
+        gas=GasCfg(
+            float(g.get("R_J_per_kgK", 287.0)),
+            float(g.get("cp_J_per_kgK", 1005.0)),
+            str(g.get("thermo_mode", "const")),
+            str(g.get("species_name", g.get("species", "air"))),
+            str(g.get("mixture_preset", "custom")),
+            dict(g.get("mixture_mole_fractions", g.get("mixture", {}) or {})),
+            str(g.get("combustion_products_fuel_name", g.get("fuel_name", g.get("species_name", g.get("species", "methanol"))))),
+            float(g.get("combustion_products_lambda", g.get("lambda", 1.0))),
+            str(g.get("combustion_products_lambda_source", "combustion")),
+            str(g.get("combustion_products_rich_mode", "simple")),
+            bool(g.get("combustion_products_equilibrium_lite_enabled", g.get("equilibrium_lite_enabled", False))),
+            float(g.get("combustion_products_equilibrium_lite_temperature_K", g.get("equilibrium_lite_temperature_K", 2200.0))),
+            float(g.get("combustion_products_equilibrium_lite_strength", g.get("equilibrium_lite_strength", 0.35))),
+        ),
         manifolds=ManifoldCfg(float(m["p_int_pa"]), float(m["T_int_K"]), float(m["p_ex_pa"]), float(m["T_ex_K"])),
         initial=InitialCfg(float(i["p0_pa"]), float(i["T0_K"])),
         simulation=SimulationCfg(

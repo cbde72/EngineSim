@@ -83,16 +83,17 @@ def signed_port_mdot(
     return -signed_to_cyl
 
 
-def enthalpy_from_signed_flow(mdot_signed_to_cyl: float, cp: float, T_cyl: float, T_other: float) -> float:
+def enthalpy_from_signed_flow(mdot_signed_to_cyl: float, h_mass_or_cp, T_cyl: float, T_other: float) -> float:
     """Return enthalpy term ``mdot*h`` in cylinder sign convention.
 
     Positive signed flow uses the *other-side* temperature because fluid enters the
     cylinder from there. Negative signed flow uses cylinder temperature because fluid
     leaves the cylinder carrying cylinder enthalpy.
     """
+    h_eval = h_mass_or_cp if callable(h_mass_or_cp) else (lambda T: float(h_mass_or_cp) * float(T))
     if mdot_signed_to_cyl >= 0.0:
-        return mdot_signed_to_cyl * cp * T_other
-    return mdot_signed_to_cyl * cp * T_cyl
+        return mdot_signed_to_cyl * h_eval(T_other)
+    return mdot_signed_to_cyl * h_eval(T_cyl)
 
 
 def flow_direction_label(mdot_signed_to_cyl: float, tol: float = 1.0e-15) -> str:

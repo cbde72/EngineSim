@@ -36,7 +36,6 @@ from motor_sim.post.cycle_convergence import (
 )
 from motor_sim.plot_config import resolve_plot_style
 from motor_sim.paths import resolve_output_dir
-from motor_sim.post.state_decode import internal_energy_from_mass_temp
 
 
 GREEN = "\033[92m"
@@ -82,11 +81,11 @@ def _state_idx_with_fallback(S, primary_name: str, fallback_name: str):
     raise KeyError(f"Neither state '{primary_name}' nor '{fallback_name}' exists in StateIndex")
 
 
-def _state_value_or_derived_energy(yj, idx_m: int | None, idx_T: int | None, idx_U: int | None, gas_R: float, gas_cp: float):
+def _state_value_or_derived_energy(yj, idx_m: int | None, idx_T: int | None, idx_U: int | None, gas):
     if idx_U is not None:
         return float(yj[idx_U])
     if idx_m is not None and idx_T is not None:
-        return internal_energy_from_mass_temp(float(yj[idx_m]), float(yj[idx_T]), gas_R, gas_cp)
+        return gas.internal_energy_from_mass_temp(float(yj[idx_m]), float(yj[idx_T]))
     return float("nan")
 
 
@@ -128,8 +127,7 @@ def format_cycle_convergence_compact(
 
 def _build_cycle_records(t, Y, model, ctx, S, active, idx_m_active, active_energy_idx, active_energy_name, cyl_state_idx):
     records = []
-    gas_R = float(ctx.gas.R)
-    gas_cp = float(ctx.gas.cp)
+    gas = ctx.gas
     for j, ti in enumerate(t):
         yj = Y[:, j]
         _ = model.rhs(float(ti), yj)
@@ -186,8 +184,7 @@ def _build_cycle_records(t, Y, model, ctx, S, active, idx_m_active, active_energ
             idx_m_active,
             cyl_state_idx[active].get("T_cyl"),
             cyl_state_idx[active].get("U_cyl"),
-            gas_R,
-            gas_cp,
+            gas,
         )
         rec["lift_in_mm"] = ctx.signals.get(f"{active}__lift_in_mm")
         rec["lift_ex_mm"] = ctx.signals.get(f"{active}__lift_ex_mm")
@@ -197,13 +194,13 @@ def _build_cycle_records(t, Y, model, ctx, S, active, idx_m_active, active_energ
             idxs = cyl_state_idx[prefix]
             rec[f"{prefix}__m_rin_kg_state"] = float(yj[idxs["m_rin"]])
             rec[f"{prefix}__T_rin_K_state"] = float(ctx.signals.get(f"{prefix}__T_rin_K", np.nan))
-            rec[f"{prefix}__U_rin_J_state"] = _state_value_or_derived_energy(yj, idxs["m_rin"], idxs.get("T_rin"), idxs.get("U_rin"), gas_R, gas_cp)
+            rec[f"{prefix}__U_rin_J_state"] = _state_value_or_derived_energy(yj, idxs["m_rin"], idxs.get("T_rin"), idxs.get("U_rin"), gas)
             rec[f"{prefix}__m_rex_kg_state"] = float(yj[idxs["m_rex"]])
             rec[f"{prefix}__T_rex_K_state"] = float(ctx.signals.get(f"{prefix}__T_rex_K", np.nan))
-            rec[f"{prefix}__U_rex_J_state"] = _state_value_or_derived_energy(yj, idxs["m_rex"], idxs.get("T_rex"), idxs.get("U_rex"), gas_R, gas_cp)
+            rec[f"{prefix}__U_rex_J_state"] = _state_value_or_derived_energy(yj, idxs["m_rex"], idxs.get("T_rex"), idxs.get("U_rex"), gas)
             rec[f"{prefix}__m_cyl_kg"] = float(yj[idxs["m_cyl"]])
             rec[f"{prefix}__T_cyl_K"] = float(ctx.signals.get(f"{prefix}__T_cyl_K", np.nan))
-            rec[f"{prefix}__U_cyl_J_state"] = _state_value_or_derived_energy(yj, idxs["m_cyl"], idxs.get("T_cyl"), idxs.get("U_cyl"), gas_R, gas_cp)
+            rec[f"{prefix}__U_cyl_J_state"] = _state_value_or_derived_energy(yj, idxs["m_cyl"], idxs.get("T_cyl"), idxs.get("U_cyl"), gas)
 
             for k, v in ctx.signals.items():
                 if k.startswith(prefix + "__"):

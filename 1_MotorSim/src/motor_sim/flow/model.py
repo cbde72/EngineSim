@@ -55,10 +55,7 @@ class CylinderCompiled:
 
 @dataclass(frozen=True)
 class RuntimeConsts:
-    gamma: float
     R: float
-    cp: float
-    cv: float
     state_representation: str
     min_volume_m3: float
     min_runner_volume_m3: float
@@ -229,22 +226,20 @@ class Model:
     def _safe_idx(self, name):
         return self.S.idx.get(name)
 
-    @staticmethod
-    def _energy_from_mass_temp(mass, temperature, cv):
-        return float(mass) * float(cv) * float(temperature)
+    def _energy_from_mass_temp(self, mass, temperature):
+        return self.ctx.gas.internal_energy_from_mass_temp(float(mass), float(temperature))
 
-    @staticmethod
-    def _temperature_from_mass_energy(mass, energy, cv, min_mass_kg):
-        return float(energy) / max(float(mass), float(min_mass_kg)) / float(cv)
+    def _temperature_from_mass_energy(self, mass, energy, min_mass_kg):
+        return self.ctx.gas.temperature_from_mass_energy(float(mass), float(energy), float(min_mass_kg))
 
     def _decode_mass_state(self, y, mass_idx, temp_idx, energy_idx, runtime):
         mass = float(y[mass_idx])
         if energy_idx is not None:
             energy = float(y[energy_idx])
-            temperature = self._temperature_from_mass_energy(mass, energy, runtime.cv, runtime.min_mass_kg)
+            temperature = self._temperature_from_mass_energy(mass, energy, runtime.min_mass_kg)
         else:
             temperature = float(y[temp_idx])
-            energy = self._energy_from_mass_temp(mass, temperature, runtime.cv)
+            energy = self._energy_from_mass_temp(mass, temperature)
         return mass, temperature, energy
 
     def _apply_mass_energy_state(self, dy, runtime, mass_idx, temp_idx, energy_idx, mass, temperature, dm_dt, dU_dt):
@@ -252,7 +247,9 @@ class Model:
         if energy_idx is not None:
             dy[energy_idx] += dU_dt
         else:
-            dT_dt = (dU_dt / runtime.cv - temperature * dm_dt) / max(mass, runtime.min_mass_kg)
+            u_spec = self.ctx.gas.u_mass(temperature)
+            cv_local = self.ctx.gas.cv_mass(temperature)
+            dT_dt = (dU_dt - u_spec * dm_dt) / max(mass * cv_local, runtime.min_mass_kg)
             dy[temp_idx] += dT_dt
 
     def _compile_runner_side(self, side_cfg, prefix, runner_defaults, min_runner_volume_m3):
@@ -321,10 +318,7 @@ class Model:
             "idx_global": idx_global,
             "cylinders": compiled_cylinders,
             "consts": RuntimeConsts(
-                gamma=float(self.ctx.gas.gamma),
                 R=float(self.ctx.gas.R),
-                cp=float(self.ctx.gas.cp),
-                cv=float(self.ctx.gas.cv),
                 state_representation=state_representation,
                 min_volume_m3=float(numerics.get("min_volume_m3", 1e-12)),
                 min_runner_volume_m3=min_runner_volume_m3,
@@ -364,7 +358,7 @@ class Model:
             ])
         return {"nodes": nodes, "edges": edges}
 
-    def _signed_flow_ab(self, p_a, T_a, p_b, T_b, Cd, A, flow_model, gamma, R):
+    def _signed_flow_ab(self, p_a, T_a, p_b, T_b, Cd, A, flow_model, R):
         """Signed mass flow positive from node A -> node B."""
         A = max(float(A), 0.0)
         Cd = max(float(Cd), 0.0)
@@ -372,7 +366,9 @@ class Model:
             return 0.0
         min_temperature_K = float(getattr(self.ctx.cfg, "numerics", {}).get("min_temperature_K", 1e-9)) if hasattr(self.ctx, "cfg") else 1e-9
         if flow_model == "nozzle_choked":
-            return mdot_nozzle_signed(Cd, A, p_a, T_a, p_b, T_b, gamma, R)
+            T_up = T_a if p_a >= p_b else T_b
+            gamma = self.ctx.gas.gamma_at(T_up)
+            return mdot_nozzle_signed(Cd, A, p_a, T_a, p_b, T_b, gamma, self.ctx.gas.R_at(T_up))
 
         # signed orifice fallback
         if p_a >= p_b:
@@ -381,16 +377,15 @@ class Model:
         else:
             sign = -1.0
             p_up, T_up, dp = p_b, T_b, p_b - p_a
-        rho = p_up / (R * max(T_up, min_temperature_K))
+        rho = p_up / (self.ctx.gas.R_at(T_up) * max(T_up, min_temperature_K))
         mdot_mag = Cd * A * math.sqrt(max(2.0 * rho * dp, 0.0)) if rho > 0.0 and dp > 0.0 else 0.0
         return sign * mdot_mag
 
-    @staticmethod
-    def _enthalpy_to_b(mdot_ab, cp, T_a, T_b):
+    def _enthalpy_to_b(self, mdot_ab, T_a, T_b):
         """Energy term for control volume B when mdot_ab is positive A -> B."""
         if mdot_ab >= 0.0:
-            return mdot_ab * cp * T_a
-        return mdot_ab * cp * T_b
+            return mdot_ab * self.ctx.gas.h_mass(T_a)
+        return mdot_ab * self.ctx.gas.h_mass(T_b)
 
     def _make_rhs_output(self, y):
         compiled = self._compiled
@@ -410,8 +405,8 @@ class Model:
         m_ex, T_ex, U_ex = self._decode_mass_state(y, idx_global.m_ex_plenum, idx_global.T_ex_plenum, idx_global.U_ex_plenum, runtime)
         V_int = self.ctx.cfg.plena.intake.volume_m3
         V_ex = self.ctx.cfg.plena.exhaust.volume_m3
-        p_int = m_int * runtime.R * T_int / max(V_int, runtime.min_volume_m3)
-        p_ex = m_ex * runtime.R * T_ex / max(V_ex, runtime.min_volume_m3)
+        p_int = self.ctx.gas.p_from_mTV(m_int, T_int, V_int)
+        p_ex = self.ctx.gas.p_from_mTV(m_ex, T_ex, V_ex)
 
         A_feed = runtime.A_feed
         Cd_feed = runtime.Cd_feed
@@ -435,7 +430,6 @@ class Model:
             Cd_throttle,
             A_throttle,
             runtime.flow_model,
-            runtime.gamma,
             runtime.R,
         )
         md_ex_to_sink = self._signed_flow_ab(
@@ -446,7 +440,6 @@ class Model:
             Cd_feed,
             A_feed,
             runtime.flow_model,
-            runtime.gamma,
             runtime.R,
         )
 
@@ -574,7 +567,9 @@ class Model:
             + wall_heat_state.qdot_wall_W
             + combustion_state.qdot_comb_W
         )
-        dT_dt = (dU_dt / runtime.cv - state.T * dm_dt) / max(state.m, runtime.min_mass_kg)
+        u_spec = self.ctx.gas.u_mass(state.T)
+        cv_local = self.ctx.gas.cv_mass(state.T)
+        dT_dt = (dU_dt - u_spec * dm_dt) / max(state.m * cv_local, runtime.min_mass_kg)
         residual_W = dU_dt - (
             flow_state.dH_int_to_cyl
             + flow_state.dH_ex_to_cyl
@@ -717,26 +712,26 @@ class Model:
     def _compute_cylinder_flows(self, g, runtime, state, geom_state, port_state):
         A_link = runtime.A_runner_link
         md_int_to_rin = self._signed_flow_ab(
-            g.p_int, g.T_int, state.p_rin, state.T_rin, 1.0, A_link, runtime.flow_model, runtime.gamma, runtime.R
+            g.p_int, g.T_int, state.p_rin, state.T_rin, 1.0, A_link, runtime.flow_model, self.ctx.gas.R_at(max(g.T_int, state.T_rin))
         )
         md_rex_to_ex = self._signed_flow_ab(
-            state.p_rex, state.T_rex, g.p_ex, g.T_ex, 1.0, A_link, runtime.flow_model, runtime.gamma, runtime.R
+            state.p_rex, state.T_rex, g.p_ex, g.T_ex, 1.0, A_link, runtime.flow_model, self.ctx.gas.R_at(max(state.T_rex, g.T_ex))
         )
         md_int_to_cyl = signed_port_mdot(
-            port_state.intake_port, geom_state.p, state.T, state.p_rin, state.T_rin, runtime.flow_model, runtime.gamma, runtime.R
+            port_state.intake_port, geom_state.p, state.T, state.p_rin, state.T_rin, runtime.flow_model, self.ctx.gas.gamma_at(max(state.T_rin, state.T)), self.ctx.gas.R_at(max(state.T_rin, state.T))
         )
         md_ex_to_cyl = signed_port_mdot(
-            port_state.exhaust_port, geom_state.p, state.T, state.p_rex, state.T_rex, runtime.flow_model, runtime.gamma, runtime.R
+            port_state.exhaust_port, geom_state.p, state.T, state.p_rex, state.T_rex, runtime.flow_model, self.ctx.gas.gamma_at(max(state.T_rex, state.T)), self.ctx.gas.R_at(max(state.T_rex, state.T))
         )
         return CylinderFlowSnapshot(
             md_int_to_rin=md_int_to_rin,
             md_rex_to_ex=md_rex_to_ex,
             md_int_to_cyl=md_int_to_cyl,
             md_ex_to_cyl=md_ex_to_cyl,
-            dH_int_to_cyl=enthalpy_from_signed_flow(md_int_to_cyl, runtime.cp, state.T, state.T_rin),
-            dH_ex_to_cyl=enthalpy_from_signed_flow(md_ex_to_cyl, runtime.cp, state.T, state.T_rex),
-            dH_int_to_rin=self._enthalpy_to_b(md_int_to_rin, runtime.cp, g.T_int, state.T_rin),
-            dH_rex_to_ex=self._enthalpy_to_b(md_rex_to_ex, runtime.cp, state.T_rex, g.T_ex),
+            dH_int_to_cyl=enthalpy_from_signed_flow(md_int_to_cyl, self.ctx.gas.h_mass, state.T, state.T_rin),
+            dH_ex_to_cyl=enthalpy_from_signed_flow(md_ex_to_cyl, self.ctx.gas.h_mass, state.T, state.T_rex),
+            dH_int_to_rin=self._enthalpy_to_b(md_int_to_rin, g.T_int, state.T_rin),
+            dH_rex_to_ex=self._enthalpy_to_b(md_rex_to_ex, state.T_rex, g.T_ex),
         )
 
     def _apply_cylinder_balances(self, dy, runtime, state, flow_state, energy_balance, accum):
@@ -848,11 +843,11 @@ class Model:
         self._update_primary_trace(trace, geom_state)
 
     def _finalize_plena(self, dy, runtime, idx_global, g, accum):
-        dH_src_to_int = self._enthalpy_to_b(g.md_src_to_int, runtime.cp, runtime.T_src_in, g.T_int)
+        dH_src_to_int = self._enthalpy_to_b(g.md_src_to_int, runtime.T_src_in, g.T_int)
         dm_int_dt = g.md_src_to_int - accum.dm_int_total_to_runners
         dU_int_dt = dH_src_to_int - accum.dH_int_total_to_runners
 
-        dH_ex_to_sink = self._enthalpy_to_b(g.md_ex_to_sink, runtime.cp, g.T_ex, runtime.T_sink_ex)
+        dH_ex_to_sink = self._enthalpy_to_b(g.md_ex_to_sink, g.T_ex, runtime.T_sink_ex)
         dm_ex_dt = accum.dm_ex_total_from_runners - g.md_ex_to_sink
         dU_ex_dt = accum.dH_ex_total_from_runners - dH_ex_to_sink
 

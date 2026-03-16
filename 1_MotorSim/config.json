@@ -11,7 +11,19 @@
   },
   "gas": {
     "R_J_per_kgK": 287.0,
-    "cp_J_per_kgK": 1005.0
+    "cp_J_per_kgK": 1005.0,
+    "thermo_mode": "const",
+    "species_name": "air",
+    "mixture_preset": "custom",
+    "mixture_mole_fractions": {
+      "N2": 0.78084,
+      "O2": 0.20946,
+      "AR": 0.00934
+    },
+    "combustion_products_fuel_name": "methanol",
+    "combustion_products_lambda": 1.0,
+    "combustion_products_lambda_source": "combustion",
+    "combustion_products_rich_mode": "simple"
   },
   "manifolds": {
     "p_int_pa": 100000.0,

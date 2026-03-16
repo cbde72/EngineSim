@@ -11,7 +11,25 @@
   },
   "gas": {
     "R_J_per_kgK": 287.0,
-    "cp_J_per_kgK": 1005.0
+    "cp_J_per_kgK": 1005.0,
+    "thermo_mode": "nasa7_species",
+    "species_name": "air",
+    "mixture_preset": "custom",
+    "mixture_mole_fractions": {
+      "N2": 0.78084,
+      "O2": 0.20946,
+      "AR": 0.00934
+    },
+    "combustion_products_fuel_name": "methanol",
+    "combustion_products_lambda": 1.0,
+    "combustion_products_lambda_source": "combustion",
+    "combustion_products_rich_mode": "simple",
+    "combustion_products_equilibrium_lite_enabled": false,
+    "combustion_products_equilibrium_lite_temperature_K": 2200.0,
+    "combustion_products_equilibrium_lite_strength": 0.35,
+    "combustion_products_equilibrium_lite_temperature_source": "config",
+    "combustion_products_equilibrium_lite_temperature_min_K": 1200.0,
+    "combustion_products_equilibrium_lite_temperature_max_K": 3000.0
   },
   "manifolds": {
     "p_int_pa": 100000.0,
